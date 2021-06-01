@@ -1,6 +1,9 @@
 #install.packages("RSQLite")
+install.packages("tidyverse")
 
 library("RSQLite")
+library("tidyverse")
+
 
 books.db <- dbConnect(RSQLite::SQLite(), "BX-Books_hkv1.db")
 books <- dbReadTable(books.db, "bx-books")
