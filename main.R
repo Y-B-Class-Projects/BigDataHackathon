@@ -103,8 +103,8 @@ ratings <- ratings[(ratings$ISBN %in% books$ISBN),] #remove unknowns ISBNs from 
 ratings <- ratings[(ratings$User.ID %in% users$User.ID),] #remove unknowns ISBNs from ratings.
 
 # To only save users that gived grades to more than N books and return in rating_test2
-min.rating.user <- 2
-min.rating.book <- 3
+min.rating.user <- 10
+min.rating.book <- 10
 
 
 #book.freq.ratings <- data.frame(table(ratings$ISBN))
@@ -132,32 +132,47 @@ cat(paste("\nMin rating user", min(rowCounts(real.rating.matrix)), "\n" ,collaps
 cat(paste("Min rating book", min(colCounts(real.rating.matrix)) , "\n" ,collapse = " "))
 cat(paste("Dim of rating matrix is:", real.rating.matrix@data@Dim[1], ":", real.rating.matrix@data@Dim[2], "(", object.size(real.rating.matrix)/1000000000 , "Gb)\n" ,collapse = " "))
 
-eval_sets <- evaluationScheme(data = real.rating.matrix, method = "split",
-                              train = 0.8, given = min.rating.user,
-                              goodRating = 5, k = 5)
+sets <- evaluationScheme(data = real.rating.matrix, method = "split",
+                         train = 0.8, given = min.rating.user,
+                         goodRating = 5, k = 5)
 
 
-eval_recommender <- Recommender(data = getData(eval_sets, "train"),
-                                method = "UBCF", parameter = NULL)
+UB_recommender <- Recommender(data = getData(sets, "train"),
+                              method = "UBCF", parameter = list(method='cosine'))
+
+IB_recommender <- Recommender(data = getData(sets, "train"),
+                              method = "IBCF", parameter = list(method='cosine'))
 
 
-eval_prediction <- my.predict(eval_recommender@model,
-                              newdata = getData(eval_sets, "known"),
+UB_prediction <- predict(UB_recommender,
+                              newdata = getData(sets, "known"),
                               n = 10,
                               type = "ratings")
 
-M <- round( eval_prediction@data, digits = 1 )
+IB_prediction <- predict(IB_recommender,
+                            newdata = getData(sets, "known"),
+                            n = 10,
+                            type = "ratings")
 
-colnames(M) <- sapply( colnames(M), function(c) books[books$ISBN == c,]$Book.Title )
+R.UB <- round(UB_prediction@data, digits = 1 )
+colnames(R.UB) <- sapply( colnames(R.UB), function(c) books[books$ISBN == c,]$Book.Title )
+R.UB <- as.matrix(R.UB)
 
-#print(M)
+R.IB <- round(IB_prediction@data, digits = 1 )
+colnames(R.IB) <- sapply( colnames(R.IB), function(c) books[books$ISBN == c,]$Book.Title )
+R.IB <- as.matrix(R.IB)
 
-final <- as.matrix(M)
+accuracy.R.UB <- calcPredictionAccuracy(x = UB_prediction, given = min.rating.user,
+                                        data = getData(sets, "unknown"), byUser=TRUE)
 
-accuracy.final <- calcPredictionAccuracy(x = eval_prediction,
-                                        data = getData(eval_sets, "unknown"))
-head(accuracy.final)
+accuracy.R.IB <- calcPredictionAccuracy(x = IB_prediction, given = min.rating.user,
+                                        data = getData(sets, "unknown"), byUser=TRUE)
 
+V.RMSE <- list()
+V.RMSE[['UBCF']] <- accuracy.R.UB[,"RMSE"]
+V.RMSE[['IBCF']] <- accuracy.R.IB[,"RMSE"]
+
+save(real.rating.matrix, sets, R.UB, R.IB, V.RMSE, file = "model.rdata")
 
 #3a
 #nb_users <- nrow(users[!duplicated(users$User.ID),])
