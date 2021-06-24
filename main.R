@@ -1,6 +1,8 @@
 #install.packages("RSQLite")
 #install.packages("tidyverse")
 
+start_time <- Sys.time()
+
 library("RSQLite")
 library("tidyverse")
 library("recommenderlab")
@@ -102,7 +104,7 @@ ratings <- ratings[(ratings$User.ID %in% users$User.ID),] #remove unknowns ISBNs
 
 # To only save users that gived grades to more than N books and return in rating_test2
 min.rating.user <- 2
-min.rating.book <- 2
+min.rating.book <- 3
 
 
 #book.freq.ratings <- data.frame(table(ratings$ISBN))
@@ -186,6 +188,11 @@ head(accuracy.final)
 #arrange(user_ratings, desc(Freq))
 #order_df<-df[order(df$Freq, decreasing <- TRUE),]
 
+
+end_time <- Sys.time()
+dif_time <- end_time - start_time
+
+end_time - start_time
 
 
 
