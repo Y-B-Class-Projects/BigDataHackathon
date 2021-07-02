@@ -102,6 +102,36 @@ rm(users.db)  # clean RAM
 
 
 
+
+
+#3a
+nb_users <- nrow(users[!duplicated(users$User.ID),])
+#3b
+nb_books <- nrow(books[!duplicated(books$ISBN),])
+#3c
+nb_ratings <- nrow(ratings[ratings$Book.Rating,])
+
+#3d
+N <- 50
+user_ratings <- data.frame(table(ratings$User.ID))
+freq.user <- filter(user_ratings, Freq >= N )
+freq.user <- arrange(freq.user, desc(Freq))
+colnames(freq.user)<- c("ID", "Frequence")
+
+filter(ratings, User.ID %in% freq.user$ID)
+
+
+#3e
+N2 <- 7
+book.freq.ratings <- data.frame(table(ratings$ISBN))
+filter(book.freq.ratings, Freq >= N2 )
+#3f
+arrange(book.freq.ratings, desc(Freq))
+#3g
+arrange(user_ratings, desc(Freq))
+
+
+
 ratings <- ratings[(ratings$ISBN %in% books$ISBN),] #remove unknowns ISBNs from ratings.
 ratings <- ratings[(ratings$User.ID %in% users$User.ID),] #remove unknowns ISBNs from ratings.
 
@@ -221,34 +251,6 @@ V.RMSE[['IBCF']] <- accuracy.R.IB[,"RMSE"]
 resave(R.IB, V.RMSE, file = "model.rdata")
 resave(IB_recommender,IB_prediction, accuracy.R.IB, all.accuracy.R.IB, all.accuracy.R.UB,  file = "temp.rdata")
 
-#3a
-#nb_users <- nrow(users[!duplicated(users$User.ID),])
-#3b
-#nb_books <- nrow(books[!duplicated(books$ISBN),])
-#3c
-#nb_ratings <- nrow(ratings[ratings$Book.Rating,])
-
-#3d
-#N <- 50
-#user_ratings <- data.frame(table(ratings$User.ID))
-#freq.user <- filter(user_ratings, Freq >= N )
-#freq.user <- arrange(freq.user, desc(Freq))
-#colnames(freq.user)<- c("ID", "Frequence")
-
-#filter(ratings, User.ID %in% freq.user$ID)
-
-
-#3e
-#N2 <- 7
-#book.freq.ratings <- data.frame(table(ratings$ISBN))
-#filter(book.freq.ratings, Freq >= N2 )
-
-#3f
-#arrange(book.freq.ratings, desc(Freq))
-
-#3g
-#arrange(user_ratings, desc(Freq))
-#order_df<-df[order(df$Freq, decreasing <- TRUE),]
 
 
 end_time <- Sys.time()
